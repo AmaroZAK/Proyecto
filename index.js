@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 app.get('/usuarios', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM login');
-        res.json({
+        res.json({  
             success: true,
             data: rows
         });

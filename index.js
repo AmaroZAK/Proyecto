@@ -13,32 +13,41 @@ app.get('/', (req, res) => {
     res.send('¡Servidor Express funcionando!');
 });
 
-// Ruta para obtener usuarios desde MySQL
-app.get('/usuarios', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM login');
-        res.json({  
-            success: true,
-            data: rows
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Ruta para agregar usuario
 app.post('/usuarios', async (req, res) => {
     try {
         const { correo, contrasena } = req.body;
-        
+
+        // 🔹 Validaciones simples
+        if (!correo || !contrasena) {
+            return res.status(400).json({
+                success: false,
+                message: "El correo y la contraseña son obligatorios"
+            });
+        }
+
+        // 🔹 Validar formato de correo
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!regexCorreo.test(correo)) {
+            return res.status(400).json({
+                success: false,
+                message: "Formato de correo no válido"
+            });
+        }
+
+        // 🔹 Validar longitud mínima de contraseña
+        if (contrasena.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "La contraseña debe tener al menos 6 caracteres"
+            });
+        }
+
+        // Si pasa las validaciones → insertar
         const [result] = await pool.query(
             'INSERT INTO login (correo, contrasena) VALUES (?, ?)',
             [correo, contrasena]
         );
-        
+
         res.json({
             success: true,
             message: 'Usuario agregado',
@@ -56,4 +65,3 @@ app.post('/usuarios', async (req, res) => {
 app.listen(port, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });
-

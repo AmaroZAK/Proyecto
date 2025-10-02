@@ -1,9 +1,12 @@
-// index.js - CON IMPORT
 import express from 'express';
 import { pool } from './src/Database/ConnecionMysql.js';
+import cors from 'cors'; // 👈 AGREGAR ESTA IMPORTACIÓN
 
 const app = express();
 const port = 3000;
+
+// 👇 AGREGAR CORS - ESENCIAL PARA REACT NATIVE
+app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -11,6 +14,21 @@ app.use(express.json());
 // Ruta de prueba 
 app.get('/', (req, res) => {
     res.send('¡Servidor Express funcionando!');
+});
+
+app.get('/usuarios', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM login');
+        res.json({
+            success: true,
+            data: rows
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 });
 
 app.post('/usuarios', async (req, res) => {
@@ -61,7 +79,8 @@ app.post('/usuarios', async (req, res) => {
     }
 });
 
-// Iniciar servidor
-app.listen(port, () => {
+// 👇 ESCUCHAR EN TODAS LAS INTERFACES
+app.listen(port, '0.0.0.0', () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+    console.log(`📱 Accesible desde Android: http://10.0.2.2:${port}`);
 });

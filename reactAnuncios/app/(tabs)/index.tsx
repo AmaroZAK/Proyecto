@@ -1,86 +1,83 @@
-import { useState } from 'react';
-import { Image, StyleSheet, TextInput, Button, Alert } from 'react-native';
-import { useRouter } from 'expo-router'; 
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Platform } from "react-native";
 
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+export default function RegistroScreen() {
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [mensaje, setMensaje] = useState("");
 
+  const registrarUsuario = () => {
+    // 👇 URL CORRECTA PARA ANDROID
+    const url = Platform.OS === 'android' 
+      ? 'http://10.0.2.2:3000/usuarios' 
+      : 'http://localhost:3000/usuarios';
 
+    console.log("Conectando a:", url); // Para debug
 
-export default function HomeScreen() {
-  const [correo, setCorreo] = useState('');
-  const [contrasena, setContrasena] = useState('');
-  const router = useRouter();
-
-  const handleLogin = () => {
-    if (correo === 'admin' && contrasena === '1234') {
-      Alert.alert('Sesión ingresada');
-      router.push('/(tabs)/bienvenido'); 
-    } else {
-      Alert.alert('Credenciales incorrectas');
-    }
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        correo: correo,
+        contrasena: contrasena
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setMensaje("✅ Usuario registrado con ID: " + data.id);
+          setCorreo("");
+          setContrasena("");
+        } else {
+          setMensaje("❌ Error: " + (data.message || data.error));
+        }
+      })
+      .catch(err => {
+        console.error("Error de conexión:", err);
+        setMensaje("⚠ No se pudo conectar con el servidor");
+      });
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#fff', dark: '#a7d1ffff' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/anun.png')} 
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Iniciar sesión</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre de usuario"
-          value={correo}
-          onChangeText={setCorreo}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          secureTextEntry
-          value={contrasena}
-          onChangeText={setContrasena}
-        />
-        <Button title="Iniciar sesión" onPress={handleLogin} />
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <TextInput
+        style={styles.input}
+        placeholder="Correo"
+        placeholderTextColor="#999"
+        value={correo}
+        onChangeText={setCorreo}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        placeholderTextColor="#999"
+        secureTextEntry
+        value={contrasena}
+        onChangeText={setContrasena}
+      />
+      <Button title="Registrar" onPress={registrarUsuario} />
+      {mensaje !== "" && <Text style={styles.mensaje}>{mensaje}</Text>}
+    </View>
   );
-} 
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-reactLogo: {
-  width: '110%',   
-  height: 300,      
-  resizeMode: 'stretch',  
-  alignSelf: 'center',    
-},
+  container: { padding: 20, marginTop: 50 },
   input: {
-    height: 40,
-    borderColor: '#ff0000ff',
     borderWidth: 1,
-    marginBottom: 12,
-    paddingLeft: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    color: "white"
   },
+  mensaje: {
+    marginTop: 15,
+    fontSize: 16,
+    color: "white"
+  }
 });

@@ -1,11 +1,11 @@
 import express from 'express';
-import { pool } from './src/Database/ConnecionMysql.js';
-import cors from 'cors'; // 👈 AGREGAR ESTA IMPORTACIÓN
+import { pool } from './Database/ConnecionMysql.js';
+import cors from 'cors'; 
 
 const app = express();
 const port = 3000;
 
-// 👇 AGREGAR CORS - ESENCIAL PARA REACT NATIVE
+
 app.use(cors());
 
 // Middleware para parsear JSON

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Platform } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { router } from "expo-router";
 
 export default function RegistroScreen() {
   const [correo, setCorreo] = useState("");
@@ -7,37 +8,52 @@ export default function RegistroScreen() {
   const [mensaje, setMensaje] = useState("");
 
   const registrarUsuario = () => {
-    // 👇 URL CORRECTA PARA ANDROID
-    const url = Platform.OS === 'android' 
-      ? 'http://10.0.2.2:3000/usuarios' 
-      : 'http://localhost:3000/usuarios';
+    // 👇 USA TU URL DE NGROK
+    const url = 'https://joan-quintan-umbilically.ngrok-free.dev/usuarios';
 
-    console.log("Conectando a:", url); // Para debug
+    console.log("Conectando a:", url);
 
     fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        // 👇 Headers específicos para ngrok free
+        "ngrok-skip-browser-warning": "true"
       },
       body: JSON.stringify({
         correo: correo,
         contrasena: contrasena
       })
     })
-      .then(res => res.json())
-      .then(data => {
+    .then(async (response) => {
+      console.log("Status:", response.status);
+      console.log("OK:", response.ok);
+      
+      const rawText = await response.text();
+      console.log("Respuesta cruda:", rawText);
+      
+      try {
+        const data = JSON.parse(rawText);
+        console.log("JSON parseado:", data);
+        
         if (data.success) {
           setMensaje("✅ Usuario registrado con ID: " + data.id);
           setCorreo("");
           setContrasena("");
+          router.push('/(tabs)/bienvenido'); 
         } else {
           setMensaje("❌ Error: " + (data.message || data.error));
         }
-      })
-      .catch(err => {
-        console.error("Error de conexión:", err);
-        setMensaje("⚠ No se pudo conectar con el servidor");
-      });
+      } catch (e) {
+        console.error("Error parseando JSON:", e);
+        setMensaje("⚠ Respuesta inválida del servidor: " + rawText.substring(0, 50));
+      }
+    })
+    .catch(err => {
+      console.error("Error de conexión:", err);
+      setMensaje("🔌 No se pudo conectar con el servidor");
+    });
   };
 
   return (

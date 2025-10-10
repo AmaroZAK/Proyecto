@@ -10,7 +10,7 @@ type LoginRow = {
 // iOS simulator: localhost
 // Celular físico: cambia por la IP LAN de tu PC (ej. http://192.168.1.8:3000)
 const API_BASE =
-  Platform.OS === 'android' ? 'http://192.168.1.8:3000' : 'http://localhost:3000';
+  Platform.OS === 'android' ? 'http://192.168.2.188:3000' : 'http://localhost:3000';
 // const API_BASE = 'http://192.168.1.8:3000'; // <- usa esto si pruebas en celular físico
 
 export default function HomePage() {

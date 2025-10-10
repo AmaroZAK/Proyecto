@@ -7,22 +7,7 @@ const port = 3000;
 
 // 👇 CONFIGURACIÓN MEJORADA DE CORS
 // 👇 CONFIGURACIÓN CORS MÁS PERMISIVA PARA MÓVILES
-app.use(cors({
-  origin: '*', // Temporalmente permite todos los orígenes
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Accept', 'Origin'],
-  credentials: false,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
-
-// 👇 MANEJO EXPLÍCITO DE OPTIONS (CRÍTICO PARA MÓVILES)
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, ngrok-skip-browser-warning');
-  res.status(204).send();
-});
+app.use(cors({ origin: true, credentials: false }));
 
 app.use(express.json());
 
@@ -77,7 +62,7 @@ app.post('/usuarios', async (req, res) => {
       [correo, contrasena]
     );
 
-    console.log('✅ Usuario insertado con ID:', result.insertId);
+    console.log('✅ Usuario insertado');
     res.json({
       success: true,
       message: 'Usuario registrado exitosamente',
@@ -102,6 +87,17 @@ app.post('/usuarios', async (req, res) => {
     });
   }
 });
+
+app.get('/usuarios', async (_req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM login'); // ajusta tu tabla
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'DB error' });
+  }
+});
+
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${port}`);

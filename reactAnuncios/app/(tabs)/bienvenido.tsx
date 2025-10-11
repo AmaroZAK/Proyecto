@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Platform, Button} from 'react-native';
 
 type LoginRow = {
   correo: string;
@@ -18,7 +18,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [pendientes, setPendientes] = useState<Record<string, boolean>>({});
   const fetchUsuarios = useCallback(async () => {
     try {
       setError(null);
@@ -41,6 +41,35 @@ export default function HomePage() {
       setRefreshing(false);
     }
   }, []);
+ const EliminarUsuario = async (correo: string) => {
+  try {
+    const resp = await fetch(`${API_BASE}/usuarios/${encodeURIComponent(correo)}`, {
+      method: 'DELETE',
+    });
+    const json = await resp.json();
+    if (!resp.ok || !json.success) {
+      alert(json.message || 'No se pudo eliminar');
+      return;
+    }
+    // Vuelve a cargar la lista o filtra el estado local
+/*     setUsuarios(prev => prev.filter(u => u.correo !== correo)); */
+   setPendientes(prev => ({ ...prev, [correo]: true }));
+  } catch (e) {
+    console.error(e);
+    alert('Error de red al eliminar');
+  }
+   
+};
+const Update = async (correo: string) => {
+  setRefreshing(true);
+  await fetchUsuarios(); // recarga desde BD
+  setPendientes(prev => {
+    const next = { ...prev };
+    delete next[correo]; // limpia solo este correo
+    return next;
+  });
+};
+
 
   useEffect(() => { fetchUsuarios(); }, [fetchUsuarios]);
 
@@ -70,6 +99,16 @@ export default function HomePage() {
     <View style={styles.container}>
       <Text style={styles.title}>Tabla: login</Text>
 
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+  <Text style={styles.title}>Tabla: login</Text>
+
+  {/* Aviso y botón "Actualizar" siempre disponibles (o solo si pendienteActualizar) */}
+  {pendientes&& (
+    <Text style={{ color: '#b36b00', fontWeight: 'bold' }}>
+      Cambios pendientes → pulsa “Actualizar”
+    </Text>
+  )}
+</View>
       <FlatList
         data={usuarios}
         keyExtractor={(item) => item.correo}        // 👈 usa correo como key
@@ -77,6 +116,9 @@ export default function HomePage() {
           <View style={styles.row}>
             <Text style={styles.cell}><Text style={styles.label}>Correo:</Text> {item.correo}</Text>
             <Text style={styles.cell}><Text style={styles.label}>Contraseña:</Text> {item.contrasena}</Text>
+            <Button title="Eliminar" onPress={()=> EliminarUsuario(item.correo)} />
+            <Button title="Actualizar" onPress={() => Update(item.correo)}
+                    disabled={!pendientes[item.correo]} />
           </View>
         )}
         ItemSeparatorComponent={() => <View style={styles.sep} />}

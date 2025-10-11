@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from './Database/ConnecionMysql.js';
 import cors from 'cors'; 
+import { appendIsInitial } from 'expo-router/build/fork/getStateFromPath-forks.js';
 
 const app = express();
 const port = 3000;
@@ -97,6 +98,31 @@ app.get('/usuarios', async (_req, res) => {
     res.status(500).json({ success: false, message: 'DB error' });
   }
 });
+
+// DELETE /usuarios/:correo
+app.delete('/usuarios/:correo', async (req, res) => {
+  const { correo } = req.params;
+  try {
+    const [result] = await pool.execute(
+      'DELETE FROM login WHERE correo = ? LIMIT 1',
+      [correo]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+    res.json({ success: true, deleted: result.affectedRows });
+  } catch (err) {
+    console.error(err);
+    // Si hay llaves foráneas que impiden borrar:
+    if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(409).json({ success: false, message: 'No se puede eliminar: registro referenciado' });
+    }
+    res.status(500).json({ success: false, message: 'Error interno' });
+  }
+});
+
+
+
 
 
 app.listen(port, '0.0.0.0', () => {

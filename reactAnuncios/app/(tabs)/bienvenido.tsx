@@ -10,7 +10,7 @@ type LoginRow = {
 // iOS simulator: localhost
 // Celular físico: cambia por la IP LAN de tu PC (ej. http://192.168.1.8:3000)
 const API_BASE =
-  Platform.OS === 'android' ? 'http://192.168.2.188:3000' : 'http://localhost:3000';
+  Platform.OS === 'android' ? 'http://192.168.1.9:3000' : 'http://localhost:3000';
 // const API_BASE = 'http://192.168.1.8:3000'; // <- usa esto si pruebas en celular físico
 
 export default function HomePage() {
@@ -121,11 +121,14 @@ const Update = async (correo: string) => {
                     disabled={!pendientes[item.correo]} />
           </View>
         )}
+        extraData={pendientes}                      // 🔴 clave para que re-renderice en móvil
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 24, width: '100%' }}
         ListEmptyComponent={<Text>No hay registros.</Text>}
+        
       />
+       
     </View>
   );
 }

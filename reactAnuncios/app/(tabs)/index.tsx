@@ -9,7 +9,7 @@ export default function RegistroScreen() {
 
   const registrarUsuario = () => {
     // 👇 USA TU URL DE NGROK
-    const url = 'https://joan-quintan-umbilically.ngrok-free.dev/usuarios';
+    const url = 'https://thromboplastically-echolalic-january.ngrok-free.dev/usuarios';
 
     console.log("Conectando a:", url);
 

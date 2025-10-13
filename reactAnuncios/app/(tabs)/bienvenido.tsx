@@ -60,6 +60,7 @@ export default function HomePage() {
   }
    
 };
+
 const Update = async (correo: string) => {
   setRefreshing(true);
   await fetchUsuarios(); // recarga desde BD
@@ -94,51 +95,120 @@ const Update = async (correo: string) => {
       </View>
     );
   }
-
+  // ---------- INTERFAZ VISUAL ----------
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tabla: login</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Tabla: login</Text>
+        {Object.keys(pendientes).length > 0 && (
+          <Text style={styles.alertText}>
+            Cambios pendientes → <Text style={styles.alertHighlight}>pulsa “Actualizar”</Text>
+          </Text>
+        )}
+      </View>
 
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-  <Text style={styles.title}>Tabla: login</Text>
-
-  {/* Aviso y botón "Actualizar" siempre disponibles (o solo si pendienteActualizar) */}
-  {pendientes&& (
-    <Text style={{ color: '#b36b00', fontWeight: 'bold' }}>
-      Cambios pendientes → pulsa “Actualizar”
-    </Text>
-  )}
-</View>
       <FlatList
         data={usuarios}
-        keyExtractor={(item) => item.correo}        // 👈 usa correo como key
+        keyExtractor={(item) => item.correo}
         renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text style={styles.cell}><Text style={styles.label}>Correo:</Text> {item.correo}</Text>
-            <Text style={styles.cell}><Text style={styles.label}>Contraseña:</Text> {item.contrasena}</Text>
-            <Button title="Eliminar" onPress={()=> EliminarUsuario(item.correo)} />
-            <Button title="Actualizar" onPress={() => Update(item.correo)}
-                    disabled={!pendientes[item.correo]} />
+          <View style={styles.card}>
+            <Text style={styles.cell}>
+              <Text style={styles.label}>Correo: </Text>
+              {item.correo}
+            </Text>
+            <Text style={styles.cell}>
+              <Text style={styles.label}>Contraseña: </Text>
+              {item.contrasena}
+            </Text>
+
+            <View style={styles.buttonRow}>
+              <Button
+                title="Eliminar"
+                onPress={() => EliminarUsuario(item.correo)}
+                color="#1D4ED8" // azul fuerte
+              />
+              <View style={{ width: 12 }} />
+              <Button
+                title="Actualizar"
+                onPress={() => Update(item.correo)}
+                color={pendientes[item.correo] ? '#16A34A' : '#9CA3AF'} // verde si activo, gris si no
+                disabled={!pendientes[item.correo]}
+              />
+            </View>
           </View>
         )}
-        extraData={pendientes}                      // 🔴 clave para que re-renderice en móvil
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={{ paddingBottom: 24, width: '100%' }}
-        ListEmptyComponent={<Text>No hay registros.</Text>}
-        
+        ListEmptyComponent={<Text style={styles.emptyText}>No hay registros.</Text>}
       />
-       
     </View>
   );
 }
 
+// ---------- ESTILOS ----------
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-  row: { padding: 12, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, backgroundColor: '#fafafa' },
-  cell: { fontSize: 16, marginBottom: 6 },
-  label: { fontWeight: 'bold' },
-  sep: { height: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F3F4F6', // fondo gris suave
+    padding: 16,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  alertText: {
+    color: '#92400E',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  alertHighlight: {
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  cell: {
+    fontSize: 16,
+    color: '#1F2937',
+    marginBottom: 6,
+  },
+  label: {
+    fontWeight: '700',
+    color: '#111827',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  sep: {
+    height: 12,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#6B7280',
+    marginTop: 20,
+    fontSize: 16,
+  },
 });
